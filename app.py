@@ -7,7 +7,6 @@ st.set_page_config(page_title="Streamlit Snake Leaderboard", page_icon="🐍", l
 st.title("🐍 Snake Game with Leaderboard")
 
 # 1. Initialize Leaderboard in Streamlit Session State
-# This acts as a tiny temporary database while the app runs
 if "leaderboard" not in st.session_state:
     st.session_state.leaderboard = {
         "Player": ["AlphaSnake", "Chomper", "Slytherin"],
@@ -24,25 +23,24 @@ if "player_name" not in st.session_state or not st.session_state.player_name:
             st.rerun()
         else:
             st.warning("Please enter a valid name!")
-    st.stop() # Stops execution here until they submit a name
+    st.stop() 
 
 player_name = st.session_state.player_name
 st.write(f"🎮 **Playing as:** `{player_name}`")
 
-# Button to switch players if needed
 if st.button("Change Player"):
     st.session_state.player_name = ""
     st.rerun()
 
-# 3. HTML Game Code with High Score Reporting System
-snake_game_html = f"""
+# 3. Standard String (No 'f' prefix) to avoid curly brace parsing bugs
+snake_game_html = """
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snake Game</title>
     <style>
-        body {{
+        body {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -52,33 +50,33 @@ snake_game_html = f"""
             margin: 0;
             padding: 0;
             touch-action: manipulation;
-        }}
-        #score-board {{
+        }
+        #score-board {
             font-size: 22px;
             margin: 5px 0;
             font-weight: bold;
-        }}
-        #game-container {{
+        }
+        #game-container {
             position: relative;
             width: 320px;
             height: 320px;
-        }}
-        canvas {{
+        }
+        canvas {
             border: 4px solid #4feb34;
             background-color: #1a1c23;
             box-shadow: 0px 0px 15px rgba(79, 235, 52, 0.3);
             width: 100%;
             height: 100%;
-        }}
-        #game-over {{
+        }
+        #game-over {
             display: none;
             color: #ff4b4b;
             font-size: 18px;
             margin-top: 10px;
             text-align: center;
             cursor: pointer;
-        }}
-        #menu-overlay {{
+        }
+        #menu-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -90,13 +88,13 @@ snake_game_html = f"""
             justify-content: center;
             align-items: center;
             z-index: 10;
-        }}
-        #menu-overlay h2 {{
+        }
+        #menu-overlay h2 {
             margin-bottom: 15px;
             color: #4feb34;
             font-size: 20px;
-        }}
-        .menu-btn {{
+        }
+        .menu-btn {
             background-color: #1a1c23;
             color: white;
             border: 2px solid #4feb34;
@@ -106,15 +104,15 @@ snake_game_html = f"""
             cursor: pointer;
             width: 130px;
             border-radius: 5px;
-        }}
-        #mobile-controls {{
+        }
+        #mobile-controls {
             display: grid;
             grid-template-columns: repeat(3, 60px);
             grid-template-rows: repeat(3, 60px);
             gap: 10px;
             margin-top: 15px;
-        }}
-        .control-btn {{
+        }
+        .control-btn {
             background-color: #1a1c23;
             border: 2px solid #4feb34;
             color: white;
@@ -126,14 +124,14 @@ snake_game_html = f"""
             align-items: center;
             user-select: none;
             -webkit-user-select: none;
-        }}
-        .control-btn:active {{
+        }
+        .control-btn:active {
             background-color: #4feb34;
             color: #0e1117;
-        }}
-        .empty-space {{
+        }
+        .empty-space {
             visibility: hidden;
-        }}
+        }
     </style>
 </head>
 <body>
@@ -172,8 +170,8 @@ snake_game_html = f"""
         const gridSize = 16; 
         const tileCount = canvas.width / gridSize;
 
-        let snake = [{{x: 10, y: 10}}];
-        let food = {{x: 15, y: 7}};
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 15, y: 7};
         let dx = 1;
         let dy = 0;
         let score = 0;
@@ -181,51 +179,137 @@ snake_game_html = f"""
         let gameOver = false;
         let gameSpeed = 100;
 
-        function setDifficulty(mode) {{
+        function setDifficulty(mode) {
             if (mode === 'easy') gameSpeed = 200;
             else if (mode === 'medium') gameSpeed = 100;
             else if (mode === 'hard') gameSpeed = 50;
             
             document.getElementById("menu-overlay").style.display = "none";
             restartGame();
-        }}
+        }
 
-        function startGame() {{
+        function startGame() {
             if (gameInterval) clearInterval(gameInterval);
             gameInterval = setInterval(update, gameSpeed); 
-        }}
+        }
 
-        function update() {{
+        function update() {
             if (gameOver) return;
-            const head = {{x: snake[0].x + dx, y: snake[0].y + dy}};
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
 
-            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {{
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
                 endGame();
                 return;
-            }}
+            }
 
-            for (let i = 0; i < snake.length; i++) {{
-                if (head.x === snake[i].x && head.y === snake[i].y) {{
+            for (let i = 0; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
                     endGame();
                     return;
-                }}
-            }}
+                }
+            }
 
             snake.unshift(head);
 
-            if (head.x === food.x && head.y === food.y) {{
+            if (head.x === food.x && head.y === food.y) {
                 score += 10;
                 document.getElementById("score").innerText = score;
                 generateFood();
-            }} else {{
+            } else {
                 snake.pop();
-            }}
+            }
 
             draw();
-        }}
+        }
 
-        function draw() {{
+        function draw() {
             ctx.fillStyle = "#1a1c23";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            snake
+            snake.forEach((part, index) => {
+                ctx.fillStyle = index === 0 ? "#3db828" : "#4feb34";
+                ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 1, gridSize - 1);
+            });
+
+            ctx.fillStyle = "#ff4b4b";
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 1, gridSize - 1);
+        }
+
+        function generateFood() {
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+        }
+
+        function endGame() {
+            gameOver = true;
+            clearInterval(gameInterval);
+            document.getElementById("game-over").style.display = "block";
+            
+            window.parent.postMessage({
+                type: "streamlit:report_score",
+                player: "PLAYER_NAME_PLACEHOLDER",
+                score: score
+            }, "*");
+        }
+
+        function restartGame() {
+            snake = [{x: 10, y: 10}];
+            dx = 1; dy = 0; score = 0; gameOver = false;
+            document.getElementById("score").innerText = score;
+            document.getElementById("game-over").style.display = "none";
+            generateFood();
+            startGame();
+        }
+
+        document.getElementById("btn-up").addEventListener("touchstart", (e) => { e.preventDefault(); if (dy === 0 && !gameOver) { dx = 0; dy = -1; } });
+        document.getElementById("btn-down").addEventListener("touchstart", (e) => { e.preventDefault(); if (dy === 0 && !gameOver) { dx = 0; dy = 1; } });
+        document.getElementById("btn-left").addEventListener("touchstart", (e) => { e.preventDefault(); if (dx === 0 && !gameOver) { dx = -1; dy = 0; } });
+        document.getElementById("btn-right").addEventListener("touchstart", (e) => { e.preventDefault(); if (dx === 0 && !gameOver) { dx = 1; dy = 0; } });
+
+        window.addEventListener("keydown", e => {
+            if(["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+            switch(e.key.toLowerCase()) {
+                case "arrowup": case "w": if (dy === 0 && !gameOver) { dx = 0; dy = -1; } break;
+                case "arrowdown": case "s": if (dy === 0 && !gameOver) { dx = 0; dy = 1; } break;
+                case "arrowleft": case "a": if (dx === 0 && !gameOver) { dx = -1; dy = 0; } break;
+                case "arrowright": case "d": if (dx === 0 && !gameOver) { dx = 1; dy = 0; } break;
+                case " ": if (gameOver) { document.getElementById("game-over").style.display = "none"; document.getElementById("menu-overlay").style.display = "flex"; } break;
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+# Replace the template string safely using Python's .replace() method instead of an f-string
+final_game_html = snake_game_html.replace("PLAYER_NAME_PLACEHOLDER", player_name)
+
+# Render Component
+components.html(final_game_html, height=620, scrolling=False)
+
+# 4. Streamlit Query Parameter Catch Hook
+query_params = st.query_params
+if "last_score" in query_params and "last_player" in query_params:
+    p_name = query_params["last_player"]
+    p_score = int(query_params["last_score"])
+    
+    df = pd.DataFrame(st.session_state.leaderboard)
+    if p_name in df["Player"].values:
+        current_hi = df.loc[df["Player"] == p_name, "High Score"].values[0]
+        if p_score > current_hi:
+            df.loc[df["Player"] == p_name, "High Score"] = p_score
+    else:
+        new_row = pd.DataFrame([{"Player": p_name, "High Score": p_score}])
+        df = pd.concat([df, new_row], ignore_index=True)
+    
+    st.session_state.leaderboard = df.to_dict(orient="list")
+    st.query_params.clear()
+    st.rerun()
+
+# 5. Broadcast bridge script
+components.html("""
+<script>
+window.addEventListener("message", function(event) {
+    if (event.data && event.data.type === "streamlit:report_score") {
+        const url = new URL(window.parent.location.href);
+        url.searchParams
