@@ -222,7 +222,7 @@ snake_game_html = f"""
             }}
 
             draw();
-        }
+        }}
 
         function draw() {{
             ctx.fillStyle = "#1a1c23";
