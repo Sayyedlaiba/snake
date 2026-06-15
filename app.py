@@ -32,7 +32,26 @@ if st.button("Change Player"):
     st.session_state.player_name = ""
     st.rerun()
 
-# 3. Standard String (No 'f' prefix) to avoid curly brace parsing bugs
+# 3. Streamlit Query Parameter Catch Hook (Processes score changes)
+query_params = st.query_params
+if "last_score" in query_params and "last_player" in query_params:
+    p_name = query_params["last_player"]
+    p_score = int(query_params["last_score"])
+    
+    df = pd.DataFrame(st.session_state.leaderboard)
+    if p_name in df["Player"].values:
+        current_hi = df.loc[df["Player"] == p_name, "High Score"].values[0]
+        if p_score > current_hi:
+            df.loc[df["Player"] == p_name, "High Score"] = p_score
+    else:
+        new_row = pd.DataFrame([{"Player": p_name, "High Score": p_score}])
+        df = pd.concat([df, new_row], ignore_index=True)
+    
+    st.session_state.leaderboard = df.to_dict(orient="list")
+    st.query_params.clear()
+    st.rerun()
+
+# 4. Main HTML Game Code
 snake_game_html = """
 <!DOCTYPE html>
 <html>
@@ -243,73 +262,4 @@ snake_game_html = """
         function endGame() {
             gameOver = true;
             clearInterval(gameInterval);
-            document.getElementById("game-over").style.display = "block";
-            
-            window.parent.postMessage({
-                type: "streamlit:report_score",
-                player: "PLAYER_NAME_PLACEHOLDER",
-                score: score
-            }, "*");
-        }
-
-        function restartGame() {
-            snake = [{x: 10, y: 10}];
-            dx = 1; dy = 0; score = 0; gameOver = false;
-            document.getElementById("score").innerText = score;
-            document.getElementById("game-over").style.display = "none";
-            generateFood();
-            startGame();
-        }
-
-        document.getElementById("btn-up").addEventListener("touchstart", (e) => { e.preventDefault(); if (dy === 0 && !gameOver) { dx = 0; dy = -1; } });
-        document.getElementById("btn-down").addEventListener("touchstart", (e) => { e.preventDefault(); if (dy === 0 && !gameOver) { dx = 0; dy = 1; } });
-        document.getElementById("btn-left").addEventListener("touchstart", (e) => { e.preventDefault(); if (dx === 0 && !gameOver) { dx = -1; dy = 0; } });
-        document.getElementById("btn-right").addEventListener("touchstart", (e) => { e.preventDefault(); if (dx === 0 && !gameOver) { dx = 1; dy = 0; } });
-
-        window.addEventListener("keydown", e => {
-            if(["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
-            switch(e.key.toLowerCase()) {
-                case "arrowup": case "w": if (dy === 0 && !gameOver) { dx = 0; dy = -1; } break;
-                case "arrowdown": case "s": if (dy === 0 && !gameOver) { dx = 0; dy = 1; } break;
-                case "arrowleft": case "a": if (dx === 0 && !gameOver) { dx = -1; dy = 0; } break;
-                case "arrowright": case "d": if (dx === 0 && !gameOver) { dx = 1; dy = 0; } break;
-                case " ": if (gameOver) { document.getElementById("game-over").style.display = "none"; document.getElementById("menu-overlay").style.display = "flex"; } break;
-            }
-        });
-    </script>
-</body>
-</html>
-"""
-
-# Replace the template string safely using Python's .replace() method instead of an f-string
-final_game_html = snake_game_html.replace("PLAYER_NAME_PLACEHOLDER", player_name)
-
-# Render Component
-components.html(final_game_html, height=620, scrolling=False)
-
-# 4. Streamlit Query Parameter Catch Hook
-query_params = st.query_params
-if "last_score" in query_params and "last_player" in query_params:
-    p_name = query_params["last_player"]
-    p_score = int(query_params["last_score"])
-    
-    df = pd.DataFrame(st.session_state.leaderboard)
-    if p_name in df["Player"].values:
-        current_hi = df.loc[df["Player"] == p_name, "High Score"].values[0]
-        if p_score > current_hi:
-            df.loc[df["Player"] == p_name, "High Score"] = p_score
-    else:
-        new_row = pd.DataFrame([{"Player": p_name, "High Score": p_score}])
-        df = pd.concat([df, new_row], ignore_index=True)
-    
-    st.session_state.leaderboard = df.to_dict(orient="list")
-    st.query_params.clear()
-    st.rerun()
-
-# 5. Broadcast bridge script
-components.html("""
-<script>
-window.addEventListener("message", function(event) {
-    if (event.data && event.data.type === "streamlit:report_score") {
-        const url = new URL(window.parent.location.href);
-        url.searchParams
+            document.getElementById("game-over").style.display =
