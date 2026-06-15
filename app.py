@@ -202,7 +202,7 @@ snake_game_html = f"""
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {{
                 endGame();
                 return;
-            }
+            }}
 
             for (let i = 0; i < snake.length; i++) {{
                 if (head.x === snake[i].x && head.y === snake[i].y) {{
